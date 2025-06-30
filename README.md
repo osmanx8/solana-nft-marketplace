@@ -1,156 +1,153 @@
-# Mugs-Marketplace-Contract
-Solana NFT Marketplace program with NFT Trading & Auction
+# 🛍️ Mugs Marketplace Contract
 
-## Program Deployment
+A full-featured **Solana NFT Marketplace Smart Contract** with support for **Buy Now**, **Offers**, and **Auction** trading. Built using [Anchor](https://book.anchor-lang.com/) and [Solana](https://solana.com/).
 
-- Prepare anchor development environments
-- Prepare aroun 12 SOL in the deploy wallet keypair
-- Confirm Network cluster in `Anchor.toml` file : f.e. `[programs.devnet]`, `cluster = "devnet"`
-- Confirm deploy authority wallet keypair location : f.e. `wallet = "/home/ubuntu/deploy-keypair.json"
-- Configure solana cli with deploy authority keypair and deploying cluster : f.e. `solana config set -h`
-- Build program with `anchor build`
-- Copy and paste the result deploy scripts from Build terminal message : f.e. `solana program deploy /home/ubuntu/project/target/deploy/mugs_marketplace.so`
+---
 
-### To Change Program Address
+## 🚀 Program Deployment
 
-- Delete the program keypair in `/target/deploy/mugs_marketplace-keypair.json`
-- Build project with `anchor build`. This will generate new keypair
-- Get the address of new keypair with `solana address --keypair ./target/deploy/mugs_marketplace-keypair.json`
-- Change program addresses in project code. `Anchor.toml`, `/program/Mugs_Marketplace/src/lib.rs`
-- Build program object again with `anchor build`
-- Deploy newly built so file with `solana program deploy`
+### 📦 Requirements
 
-## Cli Command usage
+- Anchor and Rust environment set up
+- ~12 SOL in the deployer's wallet
+- Configure `Anchor.toml`:
 
-Able to run all commands in `/cli/command.ts` file by running `yarn ts-node xxx`.
-When you get this error <br/>
-`Error: Provider local is not available on browser.`
-You can run this command `export BROWSER=` once.
+```toml
+[programs.devnet]
+mugs_marketplace = "<YOUR_PROGRAM_ID>"
 
-### Install Dependencies
+[provider]
+cluster = "devnet"
+wallet = "/home/ubuntu/deploy-keypair.json"
+```
+---
+⚙️ Deployment Steps
+# Set up CLI environment
+solana config set --url devnet
+solana config set --keypair /home/ubuntu/deploy-keypair.json
 
-- Install `node` and `yarn`
-- Install `ts-node` as global command
-- Confirm the solana wallet preparation in `package.json`: `/root/.config/solana/creator.json` in test case
+# Build program
+anchor build
 
-### Init Program
+# Deploy program
+solana program deploy ./target/deploy/mugs_marketplace.so
+---
+🔁 Changing Program Address
+# Remove old keypair
+rm ./target/deploy/mugs_marketplace-keypair.json
 
-- Initialize program with `init` command
-- Should configure the marketplace fee with `update_fee` command
-- Should add at least one `treasury` wallet with `add_treasury` command for the fee distribution
-- Should Initialize user PDA with `init_user` command for the first time usage
+# Rebuild
+anchor build
 
-## Commands Help
+# Get new address
+solana address --keypair ./target/deploy/mugs_marketplace-keypair.json
 
-### init
-Initialize Program with creating Global PDA account as Contract Deployer.
+# Update references:
+# - Anchor.toml
+# - programs/mugs_marketplace/src/lib.rs (declare_id!)
 
-### status
-Get global PDA info of program. This will show marketplace fee the treasury wallet distributions.
+---
+🧪 CLI Command Usage
+yarn ts-node cli/command.ts <command>
+Error: Provider local is not available on browser.
+export BROWSER=
 
-### update_fee
-Admin able to update the Marketplace Fee with this command as Admin.
-- `sol_fee` is the fee in permyraid
+---
+🔧 Installation
+sudo apt install nodejs yarn
+yarn global add ts-node
 
-### add_treasury
-Admin able to add the team treasury wallet distribution rate for the marketplace fee charge.
-- `address` is the treasury wallet
-- `rate` is the wallet's distribution rate by permyraid
+# Ensure Solana creator wallet exists
+# Expected location: /root/.config/solana/creator.json
 
-### remove_treasury
-Admin able to remove the team treasury wallet.
-- `address` is the treasury wallet
+---
+🛠 Initialization Workflow
+# Initialize marketplace PDA
+yarn ts-node cli/command.ts init
 
-### init_user
-Initialize User Data PDA for Escrow Balance & Traded Volume.
-This command should be executed for the first time usage of each traders.
+# Set marketplace fee (permyriad)
+yarn ts-node cli/command.ts update_fee <sol_fee>
 
-### user_status
-Get user PDA info for traders. This will show user escrow balance and traded volume info.
-- `address` is the trader wallet address
+# Add a treasury wallet
+yarn ts-node cli/command.ts add_treasury <wallet_address> <rate>
 
-### transfer
-Transfer NFT from Sender wallet or it's listed Escrow Account to the Recipient.
-- `address` is the NFT mint address
-- `recipient` is the recipient wallet address
+# Initialize user PDA
+yarn ts-node cli/command.ts init_user <user_wallet>
 
-### list
-List NFT for sale as Seller.
-- `address` is the NFT mint address
-- `price_sol` is the listing price of NFT
+---
+📚 Command Reference
+🛡 Admin
+init → Initialize Global PDA
 
-### delist
-Cancel Listing of NFT as Seller.
-- `address` is the NFT mint address
+status → View fee, treasury info
 
-### purchase
-Purchase the Listed NFT with `Buy Now` price as Buyer.
-- `address` is the NFT mint address
+update_fee <sol_fee> → Update fee (in permyriad)
 
-### make_offer
-Make offer for a particular Listed NFT as Buyer.
-- `address` is the NFT mint address
-- `price` is the offering price. Should be in range of `x1 ~ x0.5` of listed price
+add_treasury <wallet> <rate> → Add fee distribution wallet
 
-### cancel_offer
-Cancel maden offer for a particular Listed NFT as Buyer.
-- `address` is the NFT mint address
+remove_treasury <wallet> → Remove treasury wallet
 
-### accept_offer
-Accpet proper offer from a certain Buyer as Seller.
-- `address` is the NFT mint addres
-- `buyer` is the Offer provider address
+👤 User
+init_user <wallet> → Initialize user account
 
-### create_auction
-Create Auction for a particular NFT for funny trading as Seller.
-- `address` is the NFT mint address
-- `start_price` is the bidding start price
-- `min_increase` is the minimum increasing amount for the higer bidding
-- `duration` is the auction period since started time by second
-- `reserve` if this is 1, then the auction is reserve to start from the first bid placed date. Default 0
+user_status <wallet> → Get user balance and volume
 
-### palce_bid
-Participate in auction with higher bidding as Buyer.
-- `address` is the NFT mint address
-- `price` is the higher bidding price. Should be more than the latest bid + min_increase_amount
+🔄 Trading
+transfer <mint> <recipient> → Transfer NFT
 
-### claim_auction
-Claim NFT for winner as Buyer when auction is ended.
-- `address` is the NFT mint address
+list <mint> <price_sol> → List NFT for sale
 
-### cancel_auction
-Cancel auction as Seller if there is no bid until auction ended.
-- `address` is the NFT mint address
+delist <mint> → Cancel listing
 
-### listed_nft_data
-Get nft Sell Data PDA info for a particular listed NFT status.
-- `address` NFT mint address
+purchase <mint> → Buy NFT at list price
 
-### get_offer_data
-Get Offer Data PDA info for a particular Offer status.
-- `address` NFT mint address
-- `buyer` is the offer provider address
+💰 Offers
+make_offer <mint> <price> → Make offer
 
-### get_auction_data
-Get Auction Data PDA info for a particular auction status.
-- `address` NFT mint address
+cancel_offer <mint> → Cancel offer
 
-### get_all_listed_nfts
-Get all listed NFTs info which is active for sale now.
+accept_offer <mint> <buyer> → Accept offer
 
-### get_all_offers_for_nft
-Get all offers info for a particular NFT which is active for accept now.
+🕰️ Auctions
+create_auction <mint> <start_price> <min_increase> <duration> <reserve>
 
-### get_all_auctions
-Get all auctions info which is live now or not claimed ended auction.
+place_bid <mint> <price> → Place auction bid
 
-## Notes for FE Integration
+claim_auction <mint> → Claim after auction ends
 
-For the FE side web3 integration, the scripts in `lib` directory can be use without no change.
-The only thing the FE dev should change is providing `web3 connection` & the `anchor program` object from idl.
-There is the code part for the `keypair` wallet based `cli` environement case in `cli/scripts`.
-Should configure properly in `BROWSER` environment.
+cancel_auction <mint> → Cancel if no bids
 
-## BE Tracking Service Activity Parsing Script
-This script will fetch past Txs reacted with Our Marketplace Smartcontract. Then will parse an activity from each Txs so that use the info for DB sync up. \
-`yarn be`
+🧾 PDA Info
+listed_nft_data <mint> → Get listing data
+
+get_offer_data <mint> <buyer> → Get offer data
+
+get_auction_data <mint> → Get auction info
+
+get_all_listed_nfts → All active listings
+
+get_all_offers_for_nft <mint> → All offers for an NFT
+
+get_all_auctions → All active or unclaimed auctions
+---
+🌐 Frontend Integration
+Use the reusable functions from the /lib directory.
+
+FE developers only need to:
+
+Provide wallet provider + connection
+
+Inject anchor.Program instance (from IDL)
+
+For example usage, refer to cli/scripts/.
+
+Make sure to run:
+---
+Made with ⚓ Anchor, 🧡 Solana, and 🌍 Open Source.
+Let me know if you also want:
+- A `CONTRIBUTING.md`
+- A prettier version for GitHub Pages or Notion
+- Markdown badges (build status, license, etc.) for the top of the file
+
+I can provide them instantly.
+
